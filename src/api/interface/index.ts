@@ -23,6 +23,12 @@ export interface ReqPage {
   pageSize: number;
 }
 
+export namespace SecretKey {
+  export interface PublicKeyRes {
+    publicKey: string;
+  }
+}
+
 // 文件上传模块
 export namespace Upload {
   export interface ResFileUrl {
@@ -35,6 +41,7 @@ export namespace Login {
   export interface ReqLoginForm {
     username: string;
     password: string;
+    key: string;
   }
   export interface ResLogin {
     access_token: string;

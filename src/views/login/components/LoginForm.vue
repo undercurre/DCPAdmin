@@ -34,14 +34,14 @@ import { HOME_URL } from "@/config";
 import { getTimeState } from "@/utils";
 import { Login } from "@/api/interface";
 import { ElNotification } from "element-plus";
-import { loginApi } from "@/api/modules/login";
+import { getPublicKey, loginApi } from "@/api/modules/login";
 import { useUserStore } from "@/stores/modules/user";
 import { useTabsStore } from "@/stores/modules/tabs";
 import { useKeepAliveStore } from "@/stores/modules/keepAlive";
 import { initDynamicRouter } from "@/routers/modules/dynamicRouter";
 import { CircleClose, UserFilled } from "@element-plus/icons-vue";
 import type { ElForm } from "element-plus";
-import md5 from "md5";
+import CryptoJS from "crypto-js";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -58,8 +58,14 @@ const loginRules = reactive({
 const loading = ref(false);
 const loginForm = reactive<Login.ReqLoginForm>({
   username: "",
-  password: ""
+  password: "",
+  key: ""
 });
+
+const publicKeyRes = await getPublicKey();
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const publicKey = publicKeyRes.data.publicKey;
 
 // login
 const login = (formEl: FormInstance | undefined) => {
@@ -68,8 +74,14 @@ const login = (formEl: FormInstance | undefined) => {
     if (!valid) return;
     loading.value = true;
     try {
+      // 生成随机对称密钥
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const symmetricKey = CryptoJS.lib.WordArray.random(32).toString();
+
+      // 对密码进行哈希
+      const hashedPassword = CryptoJS.SHA256(loginForm.password).toString();
       // 1.执行登录接口
-      const { data } = await loginApi({ ...loginForm, password: md5(loginForm.password) });
+      const { data } = await loginApi({ ...loginForm, password: hashedPassword });
       userStore.setToken(data.access_token);
 
       // 2.添加动态路由

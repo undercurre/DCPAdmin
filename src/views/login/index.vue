@@ -10,14 +10,14 @@
           <img class="login-icon" src="@/assets/images/logo.svg" alt="" />
           <h2 class="logo-text">Geeker-Admin</h2>
         </div>
-        <LoginForm />
+        <LoginForms />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts" name="login">
-import LoginForm from "./components/LoginForm.vue";
+import LoginForms from "./components/LoginForm.vue";
 import SwitchDark from "@/components/SwitchDark/index.vue";
 </script>
 

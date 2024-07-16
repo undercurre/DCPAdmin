@@ -17,6 +17,7 @@ specifiers:
   '@wangeditor/editor-for-vue': ^5.1.12
   autoprefixer: ^10.4.19
   axios: ^1.7.2
+  crypto-js: ^4.2.0
   cz-git: 1.9.2
   czg: ^1.9.2
   dayjs: ^1.11.11
@@ -71,6 +72,7 @@ dependencies:
   '@wangeditor/editor': 5.1.23
   '@wangeditor/editor-for-vue': 5.1.12_kjkdk3vr2mrtjeuwwur7fd7iha
   axios: 1.7.2
+  crypto-js: 4.2.0
   dayjs: 1.11.11
   driver.js: 1.3.1
   echarts: 5.5.1
@@ -3831,6 +3833,10 @@ packages:
 
   /crypt/0.0.2:
     resolution: {integrity: sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==}
+    dev: false
+
+  /crypto-js/4.2.0:
+    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
     dev: false
 
   /crypto-random-string/2.0.0:
