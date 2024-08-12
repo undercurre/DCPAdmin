@@ -47,6 +47,7 @@ class RequestHttp {
         config.loading && showFullScreenLoading();
         if (config.headers && typeof config.headers.set === "function") {
           config.headers.set("x-access-token", userStore.token);
+          config.headers.set("Authorization", `Bearer ${userStore.token}`);
         }
         return config;
       },
@@ -89,6 +90,11 @@ class RequestHttp {
         if (error.message.indexOf("Network Error") !== -1) ElMessage.error("网络错误！请您稍后重试");
         // 根据服务器响应的错误状态码，做不同的处理
         if (response) checkStatus(response.status);
+        if (response?.status === 401) {
+          const userStore = useUserStore();
+          userStore.setToken("");
+          router.replace(LOGIN_URL);
+        }
         // 服务器结果都没有返回(可能服务器错误可能客户端断网)，断网处理:可以跳转到断网页面
         if (!window.navigator.onLine) router.replace("/500");
         return Promise.reject(error);
