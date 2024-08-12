@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, onBeforeMount } from "vue";
 import { useRouter } from "vue-router";
 import { HOME_URL } from "@/config";
 import { getTimeState } from "@/utils";
@@ -39,6 +39,7 @@ import { useUserStore } from "@/stores/modules/user";
 import { useTabsStore } from "@/stores/modules/tabs";
 import { useKeepAliveStore } from "@/stores/modules/keepAlive";
 import { initDynamicRouter } from "@/routers/modules/dynamicRouter";
+import { encryptSymmetricKey } from "@/utils/crypto/encryte";
 import { CircleClose, UserFilled } from "@element-plus/icons-vue";
 import type { ElForm } from "element-plus";
 import CryptoJS from "crypto-js";
@@ -62,10 +63,8 @@ const loginForm = reactive<Login.ReqLoginForm>({
   key: ""
 });
 
-const publicKeyRes = await getPublicKey();
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const publicKey = publicKeyRes.data.publicKey;
+let publicKey = "";
 
 // login
 const login = (formEl: FormInstance | undefined) => {
@@ -80,8 +79,15 @@ const login = (formEl: FormInstance | undefined) => {
 
       // 对密码进行哈希
       const hashedPassword = CryptoJS.SHA256(loginForm.password).toString();
+
+      // 使用对称密钥加密哈希后的密码
+      const encryptedPassword = CryptoJS.AES.encrypt(hashedPassword, symmetricKey).toString();
+
+      // 使用公钥加密对称密钥
+      const encryptedSymmetricKey = await encryptSymmetricKey(publicKey, symmetricKey);
+
       // 1.执行登录接口
-      const { data } = await loginApi({ ...loginForm, password: hashedPassword });
+      const { data } = await loginApi({ ...loginForm, password: encryptedPassword, key: encryptedSymmetricKey });
       userStore.setToken(data.access_token);
 
       // 2.添加动态路由
@@ -120,6 +126,11 @@ onMounted(() => {
       login(loginFormRef.value);
     }
   };
+});
+
+onBeforeMount(async () => {
+  const publicKeyRes = await getPublicKey();
+  publicKey = publicKeyRes.data.publicKey;
 });
 
 onBeforeUnmount(() => {
