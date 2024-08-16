@@ -16,7 +16,7 @@
       }
     },
     {
-      "path": "/user",
+      "path": "/user/index",
       "name": "user",
       "component": "/user/index",
       "meta": {
@@ -25,7 +25,7 @@
         "isLink": "",
         "isHide": false,
         "isFull": false,
-        "isAffix": false,
+        "isAffix": true,
         "isKeepAlive": true
       }
     }
