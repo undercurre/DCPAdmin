@@ -42,6 +42,7 @@ export namespace Login {
     username: string;
     password: string;
     key: string;
+    iv: string;
   }
   export interface ResLogin {
     access_token: string;

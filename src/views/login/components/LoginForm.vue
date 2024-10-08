@@ -39,10 +39,10 @@ import { useUserStore } from "@/stores/modules/user";
 import { useTabsStore } from "@/stores/modules/tabs";
 import { useKeepAliveStore } from "@/stores/modules/keepAlive";
 import { initDynamicRouter } from "@/routers/modules/dynamicRouter";
-import { encryptSymmetricKey } from "@/utils/crypto/encryte";
 import { CircleClose, UserFilled } from "@element-plus/icons-vue";
 import type { ElForm } from "element-plus";
 import CryptoJS from "crypto-js";
+import * as forge from "node-forge";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -60,7 +60,8 @@ const loading = ref(false);
 const loginForm = reactive<Login.ReqLoginForm>({
   username: "",
   password: "",
-  key: ""
+  key: "",
+  iv: ""
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -74,20 +75,36 @@ const login = (formEl: FormInstance | undefined) => {
     loading.value = true;
     try {
       // 生成随机对称密钥
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const symmetricKey = CryptoJS.lib.WordArray.random(32).toString();
+      const symmetricKey = CryptoJS.lib.WordArray.random(32);
+      const symmetricKeyBase64 = CryptoJS.enc.Base64.stringify(symmetricKey);
+
+      console.log("生成随机对称密钥", symmetricKeyBase64);
 
       // 对密码进行哈希
       const hashedPassword = CryptoJS.SHA256(loginForm.password).toString();
 
+      console.log("对密码进行哈希", hashedPassword);
+
       // 使用对称密钥加密哈希后的密码
-      const encryptedPassword = CryptoJS.AES.encrypt(hashedPassword, symmetricKey).toString();
+      const key = CryptoJS.enc.Base64.parse(symmetricKeyBase64);
+      const sourceIv = CryptoJS.lib.WordArray.random(128 / 8);
+      const ivBase64 = CryptoJS.enc.Base64.stringify(sourceIv);
+      const iv = CryptoJS.enc.Base64.parse(ivBase64);
+      const encryptedPassword = CryptoJS.AES.encrypt(hashedPassword, key, {
+        iv: iv,
+        mode: CryptoJS.mode.CBC, // 使用 CBC 模式
+        padding: CryptoJS.pad.Pkcs7
+      }).toString();
+
+      console.log("使用对称密钥加密哈希后的密码", encryptedPassword);
 
       // 使用公钥加密对称密钥
-      const encryptedSymmetricKey = await encryptSymmetricKey(publicKey, symmetricKey);
+      const encryptedSymmetricKey = await encryptDataWithPem(publicKey, symmetricKeyBase64);
+
+      console.log("使用公钥加密对称密钥", encryptedSymmetricKey);
 
       // 1.执行登录接口
-      const { data } = await loginApi({ ...loginForm, password: encryptedPassword, key: encryptedSymmetricKey });
+      const { data } = await loginApi({ ...loginForm, password: encryptedPassword, key: encryptedSymmetricKey, iv: ivBase64 });
       userStore.setToken(data.access_token);
 
       // 2.添加动态路由
@@ -111,6 +128,12 @@ const login = (formEl: FormInstance | undefined) => {
   });
 };
 
+async function encryptDataWithPem(publicKeyPem: string, data: string): Promise<string> {
+  const key = forge.pki.publicKeyFromPem(publicKeyPem);
+  const encryptedData = key.encrypt(data, "RSA-OAEP");
+
+  return forge.util.encode64(encryptedData);
+}
 // resetForm
 const resetForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;

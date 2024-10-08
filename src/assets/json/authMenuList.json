@@ -28,6 +28,20 @@
         "isAffix": true,
         "isKeepAlive": true
       }
+    },
+    {
+      "path": "/dashboard/index",
+      "name": "dashboard",
+      "component": "/dashboard/index",
+      "meta": {
+        "icon": "Platform",
+        "title": "看板",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": true,
+        "isKeepAlive": true
+      }
     }
   ],
   "msg": "成功"
