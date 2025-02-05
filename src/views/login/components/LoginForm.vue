@@ -76,9 +76,9 @@ const login = (formEl: FormInstance | undefined) => {
     try {
       // 生成随机对称密钥
       const symmetricKey = CryptoJS.lib.WordArray.random(32);
-      const symmetricKeyBase64 = CryptoJS.enc.Base64.stringify(symmetricKey);
+      const symmetricKeyStr = CryptoJS.enc.Base64.stringify(symmetricKey);
 
-      console.log("生成随机对称密钥", symmetricKeyBase64);
+      console.log("生成随机对称密钥", symmetricKeyStr);
 
       // 对密码进行哈希
       const hashedPassword = CryptoJS.SHA256(loginForm.password).toString();
@@ -86,11 +86,10 @@ const login = (formEl: FormInstance | undefined) => {
       console.log("对密码进行哈希", hashedPassword);
 
       // 使用对称密钥加密哈希后的密码
-      const key = CryptoJS.enc.Base64.parse(symmetricKeyBase64);
-      const sourceIv = CryptoJS.lib.WordArray.random(128 / 8);
-      const ivBase64 = CryptoJS.enc.Base64.stringify(sourceIv);
-      const iv = CryptoJS.enc.Base64.parse(ivBase64);
-      const encryptedPassword = CryptoJS.AES.encrypt(hashedPassword, key, {
+      const iv = CryptoJS.lib.WordArray.random(16);
+      const ivBase64 = CryptoJS.enc.Base64.stringify(iv);
+      console.log("iv:", ivBase64);
+      const encryptedPassword = CryptoJS.AES.encrypt(hashedPassword, symmetricKey, {
         iv: iv,
         mode: CryptoJS.mode.CBC, // 使用 CBC 模式
         padding: CryptoJS.pad.Pkcs7
@@ -99,7 +98,7 @@ const login = (formEl: FormInstance | undefined) => {
       console.log("使用对称密钥加密哈希后的密码", encryptedPassword);
 
       // 使用公钥加密对称密钥
-      const encryptedSymmetricKey = await encryptDataWithPem(publicKey, symmetricKeyBase64);
+      const encryptedSymmetricKey = await encryptDataWithPem(publicKey, symmetricKeyStr);
 
       console.log("使用公钥加密对称密钥", encryptedSymmetricKey);
 

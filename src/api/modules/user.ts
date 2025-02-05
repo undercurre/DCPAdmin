@@ -1,5 +1,5 @@
 import { User } from "@/api/interface/user";
-import { PORT1, PORT2 } from "@/api/config/servicePort";
+import { PORT2 } from "@/api/config/servicePort";
 import http from "@/api";
 
 /**
@@ -17,10 +17,10 @@ export const addUser = (params: User.CreateDTO) => {
 
 // 编辑用户
 export const editUser = (params: { id: string }) => {
-  return http.post(PORT1 + `/user/edit`, params);
+  return http.post(PORT2 + `/user/edit`, params);
 };
 
 // 删除用户
 export const deleteUser = (params: { id: string[] }) => {
-  return http.post(PORT1 + `/user/delete`, params);
+  return http.post(PORT2 + `/user/delete`, params);
 };

@@ -30,6 +30,20 @@
       }
     },
     {
+      "path": "/bill/index",
+      "name": "bill",
+      "component": "/bill/index",
+      "meta": {
+        "icon": "Tickets",
+        "title": "账单管理",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": true,
+        "isKeepAlive": true
+      }
+    },
+    {
       "path": "/dashboard/index",
       "name": "dashboard",
       "component": "/dashboard/index",
