@@ -10,7 +10,7 @@ const scopes = fs
 /** @type {import('cz-git').UserConfig} */
 module.exports = {
   ignores: [commit => commit.includes("init")],
-  extends: ["@commitlint/config-conventional"],
+  extends: [],
   rules: {
     // @see: https://commitlint.js.org/#/reference-rules
     "body-leading-blank": [2, "always"],

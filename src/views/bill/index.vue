@@ -32,13 +32,16 @@
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
         <div class="el-upload__text">Drop file here or <em>click to upload</em></div>
         <template #tip>
-          <div class="el-upload__tip">上传微信账单csv文件</div>
+          <div class="el-upload__tip">上传账单csv文件</div>
         </template>
       </el-upload>
+      <el-select v-model="platformType" placeholder="Select" size="large" style="width: 240px">
+        <el-option v-for="item in platformTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+      </el-select>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="dialogVisible = false"> Confirm </el-button>
+          <el-button type="primary" @click="uploadData"> Confirm </el-button>
         </div>
       </template>
     </el-dialog>
@@ -85,9 +88,22 @@ async function onChange(file: UploadFile) {
     const data = e.target?.result;
     handleCSVFile(data);
   };
-  reader.readAsText(file.raw);
+  reader.readAsText(file.raw, "GBK");
   return true;
 }
+
+const platformType = ref("Wechat");
+
+const platformTypeOptions = [
+  {
+    value: "AliPay",
+    label: "AliPay"
+  },
+  {
+    value: "Wechat",
+    label: "Wechat"
+  }
+];
 
 // '交易时间', '交易类型', '交易对方', '商品', '收/支', '金额(元)', '支付方式', '当前状态', '交易单号', '商户单号', '备注\r'
 type WechatBill = {
@@ -103,31 +119,50 @@ type WechatBill = {
   merchantOrderId: string; // 商户单号
   remarks: string; // 备注
 };
+// '交易时间', '交易分类', '交易对方', '对方账号', '商品说明', '收/支', '金额', '收/付款方式', '交易状态', '交易订单号', '商家订单号', '备注', ''
+type AliPayBill = {
+  transactionTime: string; // 交易时间
+  transactionType: string; // 交易类型
+  counterparty: string; // 交易对方
+  accountparty: string; // 对方账号
+  product: string; // 商品
+  incomeOrExpense: string; // 收/支
+  amount: number; // 金额(元)
+  paymentMethod: string; // 支付方式
+  currentStatus: string; // 当前状态
+  transactionId: string; // 交易单号
+  merchantOrderId: string; // 商户单号
+  remarks: string; // 备注
+};
+
+let mappedData: AliPayBill[] | WechatBill[] = [];
 
 async function handleCSVFile(data: string | ArrayBuffer | null | undefined) {
   if (data && typeof data === "string") {
     const lines = data.split("\n");
-    lines[0].split(",");
-    csvParsed = lines.slice(1).map(line => line.split(","));
-    const mappedData = handleWechatBill(csvParsed);
-    // 映射成数据库入库数据
-    const outData: Omit<Bill.Entity, "id" | "createdAt">[] = mappedData.map((item: WechatBill) => {
-      return {
-        amount: item.amount,
-        category: item.incomeOrExpense,
-        description: item.counterparty + item.product,
-        expenseDate: item.transactionTime
-      };
-    });
-    await createBatchBill(outData);
+    csvParsed = lines.map(line => line.split(","));
+    if (platformType.value === "AliPay") {
+      mappedData = handleAliPayBill(csvParsed);
+    } else {
+      mappedData = handleWechatBill(csvParsed);
+    }
+    console.log(mappedData);
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function handleWechatBill(csvParsed: string[][]): Array<WechatBill> {
   // 舍弃前15行数据
-  const abandoned = csvParsed.slice(16, -1);
+  const abandoned = csvParsed.slice(24, -1);
+  console.log(abandoned);
   // 映射转化为对象
   const mapped = abandoned.map(item => {
+    if (item[4] !== "收入" && item[4] !== "支出" && item[4] !== "/") {
+      const incomeOrExpenseIndex = item.findIndex(i => i === "收入" || i === "支出" || i === "/");
+      const cutArray = item.splice(3, incomeOrExpenseIndex - 3 - 1);
+      item[3] = cutArray.join(",");
+      console.log("有问题", item, cutArray);
+    }
     return {
       transactionTime: item[0],
       transactionType: item[1],
@@ -143,6 +178,51 @@ function handleWechatBill(csvParsed: string[][]): Array<WechatBill> {
     };
   });
   return mapped;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function handleAliPayBill(csvParsed: string[][]): Array<AliPayBill> {
+  // 舍弃前15行数据
+  const abandoned = csvParsed.slice(25, -1);
+  // 映射转化为对象
+  const mapped = abandoned.map(item => {
+    if (item[5] !== "收入" && item[5] !== "支出" && item[5] !== "不计收支") {
+      const incomeOrExpenseIndex = item.findIndex(i => i === "收入" || i === "支出" || i === "不计收支");
+      const cutArray = item.splice(4, incomeOrExpenseIndex - 4 - 1);
+      item[4] = cutArray.join(",");
+      console.log("有问题", item, cutArray);
+    }
+    return {
+      transactionTime: item[0],
+      transactionType: item[1],
+      counterparty: item[2],
+      accountparty: item[3],
+      product: item[4],
+      incomeOrExpense: item[5],
+      amount: Number(item[6]),
+      paymentMethod: item[7],
+      currentStatus: item[8],
+      transactionId: item[9],
+      merchantOrderId: item[10],
+      remarks: item[11]
+    };
+  });
+  return mapped;
+}
+
+async function uploadData() {
+  // 映射成数据库入库数据
+  const outData: Omit<Bill.Entity, "id" | "createdAt">[] = mappedData.map((item: WechatBill | AliPayBill) => {
+    return {
+      amount: item.amount,
+      category: item.incomeOrExpense,
+      description: item.counterparty + item.product,
+      expenseDate: item.transactionTime
+    };
+  });
+  for (let i = 0; i < outData.length / 50; i++) {
+    await createBatchBill({ list: outData.slice(i * 50, (i + 1) * 50) });
+  }
 }
 
 onBeforeMount(async () => {

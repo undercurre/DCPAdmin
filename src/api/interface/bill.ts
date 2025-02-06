@@ -8,5 +8,7 @@ export namespace Bill {
     createdAt: string;
   };
 
-  export type CreateBatchParams = Omit<Bill.Entity, "id" | "createdAt">[];
+  export type CreateBatchParams = {
+    list: Omit<Bill.Entity, "id" | "createdAt">[];
+  };
 }
