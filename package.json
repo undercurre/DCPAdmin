@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.2.0",
   "type": "module",
-  "description": "geeker-admin open source management system",
+  "description": "DCPAdmin open source management system",
   "author": {
     "name": "undercurre",
     "email": "undercurre@163.com",
@@ -55,6 +55,7 @@
     "qs": "^6.12.1",
     "screenfull": "^6.0.2",
     "sortablejs": "^1.15.2",
+    "unocss": "^65.4.3",
     "vue": "^3.4.30",
     "vue-i18n": "^9.13.1",
     "vue-router": "^4.4.0",

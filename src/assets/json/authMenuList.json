@@ -44,6 +44,20 @@
       }
     },
     {
+      "path": "/ai/index",
+      "name": "ai",
+      "component": "/ai/index",
+      "meta": {
+        "icon": "Star",
+        "title": "AI",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": true,
+        "isKeepAlive": true
+      }
+    },
+    {
       "path": "/dashboard/index",
       "name": "dashboard",
       "component": "/dashboard/index",
