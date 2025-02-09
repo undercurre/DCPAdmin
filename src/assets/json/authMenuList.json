@@ -58,6 +58,65 @@
       }
     },
     {
+      "path": "/study",
+      "name": "study",
+      "component": "/study/question",
+      "meta": {
+        "icon": "Notebook",
+        "title": "学习管理",
+        "isLink": "",
+        "isHide": false,
+        "isFull": false,
+        "isAffix": true,
+        "isKeepAlive": true
+      },
+      "children": [
+        {
+          "path": "/study/question",
+          "name": "question",
+          "component": "/study/question/index",
+          "meta": {
+            "icon": "Notebook",
+            "title": "题库",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        },
+        {
+          "path": "/study/answer",
+          "name": "answer",
+          "component": "/study/answer/index",
+          "meta": {
+            "icon": "Notebook",
+            "title": "刷题",
+            "isLink": "",
+            "isHide": false,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        },
+        {
+          "path": "/study/answer/:id",
+          "name": "answerDetail",
+          "component": "/study/answer/index",
+          "meta": {
+            "icon": "Notebook",
+            "activeMenu": "/study/answer",
+            "title": "刷题",
+            "isLink": "",
+            "isHide": true,
+            "isFull": false,
+            "isAffix": false,
+            "isKeepAlive": true
+          }
+        }
+      ]
+    },
+    {
       "path": "/dashboard/index",
       "name": "dashboard",
       "component": "/dashboard/index",

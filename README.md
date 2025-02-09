@@ -398,7 +398,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // 从请求头中提取 token
-      ignoreExpiration: false,
+      ignoreExpiration: false, // 接受超时检查
       secretOrKey: configService.get<string>("JWT_SECRET") //  用来验证 token 的签名
     });
   }
