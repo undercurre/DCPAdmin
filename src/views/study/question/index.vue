@@ -10,7 +10,7 @@
       <el-table-column prop="createdAt" label="CreateTime" width="320" />
       <el-table-column :fixed="false" label="ToDo" min-width="120">
         <template #default="scope">
-          <el-button link type="primary" size="small" @click="go2Answer(scope.row.id)">刷它</el-button>
+          <el-button link type="primary" size="small" @click="go2Answer(scope.row)">刷它</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -30,6 +30,25 @@
         </div>
       </template>
     </el-dialog>
+    <el-dialog v-model="answerDialogVisible" title="答题" width="1000" :before-close="handleClose">
+      <el-form :model="answerForm" label-width="auto" style="max-width: 1000px">
+        <el-form-item label="题目">
+          <el-input type="textarea" autosize resize="none" v-model="answerForm.question" disabled />
+        </el-form-item>
+        <el-form-item label="作答">
+          <el-input type="textarea" autosize resize="none" v-model="answerForm.answer" />
+        </el-form-item>
+        <el-form-item label="打分">
+          <el-input-number v-model="answerForm.score" :min="0" :max="100" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="answerDialogVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="uploadAnswer"> Confirm </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -37,9 +56,8 @@
 import { onBeforeMount, reactive, ref } from "vue";
 
 import { ElMessage, ElMessageBox, ElTable } from "element-plus";
-import { createQuestion, getQuestionList } from "@/api/modules/study";
+import { createAnswer, createQuestion, getQuestionList } from "@/api/modules/study";
 import { Study } from "@/api/interface/study";
-import router from "@/routers";
 
 let tableData = ref<Array<Study.Question>>([]);
 
@@ -72,22 +90,57 @@ async function uploadData() {
   if (res.code === 200) {
     ElMessage.success("成功");
     dialogVisible.value = false;
-    getQuestionList();
+    refreshTable();
     resetForm();
   } else {
     ElMessage.success("失败");
   }
 }
 
-const go2Answer = (id: string) => {
-  router.push({ path: "/study/answer", query: { id } });
+const answerDialogVisible = ref(false);
+const curAnswerQuestion = ref<Study.Question>();
+
+const go2Answer = (row: Study.Question) => {
+  curAnswerQuestion.value = row;
+  answerForm.question = row.content;
+  answerDialogVisible.value = true;
 };
 
-onBeforeMount(async () => {
+let answerForm = reactive({
+  question: "",
+  answer: "",
+  score: 0
+});
+
+const resetAnswerForm = () => {
+  answerForm = reactive({
+    question: "",
+    answer: "",
+    score: 0
+  });
+};
+
+async function uploadAnswer() {
+  if (!curAnswerQuestion.value) return;
+  const res = await createAnswer({ content: answerForm.answer, questionId: curAnswerQuestion.value.id, score: answerForm.score });
+  if (res.code === 200) {
+    ElMessage.success("成功");
+    answerDialogVisible.value = false;
+    resetAnswerForm();
+  } else {
+    ElMessage.success("失败");
+  }
+}
+
+const refreshTable = async () => {
   const listRes = await getQuestionList();
 
   console.log(listRes.data);
 
   tableData.value = listRes.data;
+};
+
+onBeforeMount(async () => {
+  refreshTable();
 });
 </script>

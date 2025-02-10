@@ -12,6 +12,7 @@ export namespace Study {
     score: number;
     description: null | string;
     content: string;
+    question: Question;
     createdAt: string;
   };
 
@@ -24,5 +25,11 @@ export namespace Study {
     questionId: string;
     content: string;
     score: number;
+  };
+
+  export type UpdateAnswerParams = {
+    content: string;
+    score: number;
+    description: string;
   };
 }
