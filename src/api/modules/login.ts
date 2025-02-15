@@ -40,3 +40,13 @@ export const getAuthButtonListApi = () => {
 export const logoutApi = () => {
   return http.post(PORT1 + `/auth/logout`);
 };
+
+export const refreshToken = () => {
+  return http.post<Login.ResRefreshToken>(
+    PORT1 + "/auth/refresh-token",
+    {},
+    {
+      withCredentials: true
+    }
+  );
+};

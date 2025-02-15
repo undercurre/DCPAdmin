@@ -8,6 +8,7 @@ import { checkStatus } from "./helper/checkStatus";
 import { AxiosCanceler } from "./helper/axiosCancel";
 import { useUserStore } from "@/stores/modules/user";
 import router from "@/routers";
+import { refreshToken } from "./modules/login";
 
 export interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   loading?: boolean;
@@ -61,7 +62,7 @@ class RequestHttp {
      *  服务器换返回信息 -> [拦截统一处理] -> 客户端JS获取到信息
      */
     this.service.interceptors.response.use(
-      (response: AxiosResponse & { config: CustomAxiosRequestConfig }) => {
+      async (response: AxiosResponse & { config: CustomAxiosRequestConfig }) => {
         const { data, config } = response;
 
         const userStore = useUserStore();
@@ -69,10 +70,14 @@ class RequestHttp {
         config.loading && tryHideFullScreenLoading();
         // 登录失效
         if (data.code == ResultEnum.OVERDUE) {
-          userStore.setToken("");
-          router.replace(LOGIN_URL);
-          ElMessage.error(data.msg);
-          return Promise.reject(data);
+          const { data: refreshData, code: refreshCode } = await refreshToken();
+          userStore.setToken(refreshData.access_token);
+          if (refreshCode == ResultEnum.OVERDUE) {
+            userStore.setToken("");
+            router.replace(LOGIN_URL);
+            ElMessage.error(data.msg);
+            return Promise.reject(data);
+          }
         }
         // 全局错误信息拦截（防止下载文件的时候返回数据流，没有 code 直接报错）
         if (data.code && Number(data.code) !== ResultEnum.SUCCESS) {

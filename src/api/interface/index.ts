@@ -50,4 +50,7 @@ export namespace Login {
   export interface ResAuthButtons {
     [key: string]: string[];
   }
+  export interface ResRefreshToken {
+    access_token: string;
+  }
 }

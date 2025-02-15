@@ -11,6 +11,7 @@
       <el-table-column :fixed="false" label="ToDo" min-width="120">
         <template #default="scope">
           <el-button link type="primary" size="small" @click="go2Answer(scope.row)">刷它</el-button>
+          <el-button link type="danger" size="small" @click="go2Answer(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
