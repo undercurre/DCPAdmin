@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig, AxiosResponse } from "axios";
 import { showFullScreenLoading, tryHideFullScreenLoading } from "@/components/Loading/fullScreen";
-import { LOGIN_URL } from "@/config";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { LOGIN_URL, REFRESH_TOKEN_URL } from "@/config";
 import { ElMessage } from "element-plus";
 import { ResultData } from "@/api/interface";
 import { ResultEnum } from "@/enums/httpEnum";
@@ -70,14 +71,10 @@ class RequestHttp {
         config.loading && tryHideFullScreenLoading();
         // 登录失效
         if (data.code == ResultEnum.OVERDUE) {
-          const { data: refreshData, code: refreshCode } = await refreshToken();
-          userStore.setToken(refreshData.access_token);
-          if (refreshCode == ResultEnum.OVERDUE) {
-            userStore.setToken("");
-            router.replace(LOGIN_URL);
-            ElMessage.error(data.msg);
-            return Promise.reject(data);
-          }
+          userStore.setToken("");
+          router.replace(LOGIN_URL);
+          ElMessage.error(data.msg);
+          return Promise.reject(data);
         }
         // 全局错误信息拦截（防止下载文件的时候返回数据流，没有 code 直接报错）
         if (data.code && Number(data.code) !== ResultEnum.SUCCESS) {
@@ -89,16 +86,35 @@ class RequestHttp {
       },
       async (error: AxiosError) => {
         const { response } = error;
+        const originalRequest = error.config as AxiosRequestConfig & { headers: Record<string, any>; _retry?: boolean };
+        const userStore = useUserStore();
         tryHideFullScreenLoading();
         // 请求超时 && 网络错误单独判断，没有 response
         if (error.message.indexOf("timeout") !== -1) ElMessage.error("请求超时！请您稍后重试");
         if (error.message.indexOf("Network Error") !== -1) ElMessage.error("网络错误！请您稍后重试");
         // 根据服务器响应的错误状态码，做不同的处理
-        if (response) checkStatus(response.status);
-        if (response?.status === 401) {
-          const userStore = useUserStore();
+        if (response && response?.status !== 401) checkStatus(response.status);
+        if (response?.status === 401 && originalRequest.url?.includes(REFRESH_TOKEN_URL)) {
           userStore.setToken("");
           router.replace(LOGIN_URL);
+          checkStatus(401);
+        }
+        if (response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes(REFRESH_TOKEN_URL)) {
+          originalRequest._retry = true;
+          try {
+            const { data: refreshData, code: refreshCode } = await refreshToken();
+            userStore.setToken(refreshData.access_token);
+            if (refreshCode == ResultEnum.OVERDUE) {
+              userStore.setToken("");
+              router.replace(LOGIN_URL);
+              checkStatus(401);
+              return;
+            }
+            originalRequest.headers["Authorization"] = `Bearer ${refreshData.access_token}`;
+            return (await axios(originalRequest)).data;
+          } catch (refreshError) {
+            return Promise.reject(refreshError);
+          }
         }
         // 服务器结果都没有返回(可能服务器错误可能客户端断网)，断网处理:可以跳转到断网页面
         if (!window.navigator.onLine) router.replace("/500");

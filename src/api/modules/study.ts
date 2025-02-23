@@ -17,6 +17,19 @@ export const getQuestionList = () => {
   return http.get<Study.Question[]>(PORT5 + `/questions`);
 };
 
+// 更新题目
+
+export const updateQuestion = (params: Study.UpdateQuestionParams) => {
+  const { id, ...others } = params;
+  return http.put<Study.Question>(PORT5 + `/questions/${id}`, others);
+};
+
+// 删除题目
+
+export const delQuestion = (id: string) => {
+  return http.delete(PORT5 + `/questions/${id}`);
+};
+
 // 回答列表
 export const createAnswer = (params: Study.CreateAnswerParams) => {
   return http.post<Study.Answer>(PORT5 + `/answers`, params);
