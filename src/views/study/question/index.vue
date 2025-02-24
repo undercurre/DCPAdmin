@@ -148,6 +148,7 @@ const resetAnswerForm = () => {
     score: 0,
     standard: ""
   });
+  isShowStandard.value = false;
 };
 
 async function uploadAnswer() {
