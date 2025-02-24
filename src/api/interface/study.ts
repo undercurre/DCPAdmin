@@ -7,6 +7,12 @@ export namespace Study {
     updatedAt: string;
   };
 
+  export type UpdateQuestionParams = {
+    id: string;
+    content?: string;
+    standard?: string;
+  };
+
   export type Answer = {
     id: string;
     score: number;

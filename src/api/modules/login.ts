@@ -38,5 +38,21 @@ export const getAuthButtonListApi = () => {
 
 // 用户退出登录
 export const logoutApi = () => {
-  return http.post(PORT1 + `/auth/logout`);
+  return http.post(
+    PORT1 + `/auth/logout`,
+    {},
+    {
+      withCredentials: true
+    }
+  );
+};
+
+export const refreshToken = () => {
+  return http.post<Login.ResRefreshToken>(
+    PORT1 + "/auth/refresh-token",
+    {},
+    {
+      withCredentials: true
+    }
+  );
 };

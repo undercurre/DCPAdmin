@@ -1,11 +1,21 @@
 <template>
   <div class="card" style="height: 100%">
-    <el-table :data="tableData" style="width: 100%; height: 100%" :default-sort="{ prop: 'createdAt', order: 'descending' }">
+    <el-table
+      :data="tableData"
+      style="width: 100%; height: 100%"
+      :default-sort="{ prop: 'createdAt', order: 'descending' }"
+      stripe
+    >
+      <el-table-column type="index" label="序号" width="80"></el-table-column>
       <el-table-column prop="question.content" label="问题" />
-      <el-table-column fixed prop="content" label="回答" />
+      <el-table-column prop="content" label="回答" />
       <el-table-column prop="description" label="笔记" />
-      <el-table-column prop="score" label="得分" />
-      <el-table-column prop="createdAt" label="CreateTime" />
+      <el-table-column prop="score" label="得分">
+        <template #default="scope">
+          <span :style="{ color: scope.row.score < 100 ? 'red' : 'green' }">{{ scope.row.score }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="createdAt" label="CreateTime" :formatter="formatter" />
       <el-table-column :fixed="false" label="ToDo">
         <template #default="scope">
           <el-button link type="primary" size="small" @click="go2Correct(scope.row)">打分</el-button>
@@ -50,8 +60,13 @@ import { onBeforeMount, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, ElTable } from "element-plus";
 import { Study } from "@/api/interface/study";
 import { continueAnswer, correctAnswer, getAnswerList } from "@/api/modules/study";
+import { dayjs } from "element-plus";
 
 let tableData = ref<Array<Study.Answer>>([]);
+
+const formatter = (row: Study.Answer) => {
+  return dayjs(row.createdAt).format("YYYY-MM-DD HH:mm:ss");
+};
 
 const handleClose = (done: () => void) => {
   ElMessageBox.confirm("Are you sure to close this dialog?")

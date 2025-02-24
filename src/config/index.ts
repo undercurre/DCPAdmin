@@ -17,3 +17,7 @@ export const AMAP_MAP_KEY: string = "";
 
 // 百度地图 key
 export const BAIDU_MAP_KEY: string = "";
+
+// 刷新token的url标记
+
+export const REFRESH_TOKEN_URL = "refresh-token";

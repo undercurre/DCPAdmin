@@ -4,13 +4,16 @@
       <h3>试题管理</h3>
       <el-button type="primary" @click="dialogVisible = true">题目录入</el-button>
     </div>
-    <el-table :data="tableData" style="width: 100%; height: 100%">
+    <el-table :data="tableData" style="width: 100%; height: 100%" :stripe="true">
+      <el-table-column type="index" label="序号" width="80"></el-table-column>
       <el-table-column prop="content" label="题目" width="240" />
-      <el-table-column prop="standard" label="答案" width="120" />
-      <el-table-column prop="createdAt" label="CreateTime" width="320" />
+      <!-- <el-table-column prop="standard" label="答案" width="120" /> -->
+      <el-table-column prop="createdAt" label="CreateTime" />
       <el-table-column :fixed="false" label="ToDo" min-width="120">
         <template #default="scope">
           <el-button link type="primary" size="small" @click="go2Answer(scope.row)">刷它</el-button>
+          <el-button link type="primary" size="small" @click="go2Edit(scope.row)">修改</el-button>
+          <el-button link type="danger" size="small" @click="delItem(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -35,17 +38,25 @@
         <el-form-item label="题目">
           <el-input type="textarea" autosize resize="none" v-model="answerForm.question" disabled />
         </el-form-item>
-        <el-form-item label="作答">
+        <el-form-item label="作答" v-if="operationType === 'answer'">
           <el-input type="textarea" autosize resize="none" v-model="answerForm.answer" />
         </el-form-item>
-        <el-form-item label="打分">
-          <el-input-number v-model="answerForm.score" :min="0" :max="100" />
+        <el-form-item label="答案" v-if="isShowStandard">
+          <el-input type="textarea" autosize resize="none" v-model="answerForm.standard" :disabled="operationType === 'answer'" />
+        </el-form-item>
+        <el-form-item label="打分" v-if="operationType === 'answer'">
+          <el-input-number v-model="answerForm.score" :min="0" :max="100" /><el-switch
+            class="ml-10px"
+            v-model="isShowStandard"
+            active-text="看答案"
+            inactive-text="隐藏答案"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="answerDialogVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="uploadAnswer"> Confirm </el-button>
+          <el-button type="primary" @click="handleConfirm"> Confirm </el-button>
         </div>
       </template>
     </el-dialog>
@@ -56,7 +67,7 @@
 import { onBeforeMount, reactive, ref } from "vue";
 
 import { ElMessage, ElMessageBox, ElTable } from "element-plus";
-import { createAnswer, createQuestion, getQuestionList } from "@/api/modules/study";
+import { createAnswer, createQuestion, delQuestion, getQuestionList, updateQuestion } from "@/api/modules/study";
 import { Study } from "@/api/interface/study";
 
 let tableData = ref<Array<Study.Question>>([]);
@@ -98,25 +109,44 @@ async function uploadData() {
 }
 
 const answerDialogVisible = ref(false);
+const isShowStandard = ref(false);
 const curAnswerQuestion = ref<Study.Question>();
+const operationType = ref<"edit" | "answer">("answer");
 
 const go2Answer = (row: Study.Question) => {
+  operationType.value = "answer";
   curAnswerQuestion.value = row;
   answerForm.question = row.content;
+  answerForm.standard = row.standard;
   answerDialogVisible.value = true;
+};
+
+const go2Edit = (row: Study.Question) => {
+  operationType.value = "edit";
+  curAnswerQuestion.value = row;
+  answerForm.question = row.content;
+  answerForm.standard = row.standard;
+  answerDialogVisible.value = true;
+};
+
+const delItem = async (row: Study.Question) => {
+  await delQuestion(row.id);
+  refreshTable();
 };
 
 let answerForm = reactive({
   question: "",
   answer: "",
-  score: 0
+  score: 0,
+  standard: ""
 });
 
 const resetAnswerForm = () => {
   answerForm = reactive({
     question: "",
     answer: "",
-    score: 0
+    score: 0,
+    standard: ""
   });
 };
 
@@ -129,6 +159,27 @@ async function uploadAnswer() {
     resetAnswerForm();
   } else {
     ElMessage.success("失败");
+  }
+}
+
+async function submitEditedAnswer() {
+  if (!curAnswerQuestion.value) return;
+  const res = await updateQuestion({ content: answerForm.question, standard: answerForm.answer, id: curAnswerQuestion.value.id });
+  if (res.code === 200) {
+    ElMessage.success("成功");
+    answerDialogVisible.value = false;
+    resetAnswerForm();
+    refreshTable();
+  } else {
+    ElMessage.success("失败");
+  }
+}
+
+function handleConfirm() {
+  if (operationType.value === "answer") {
+    uploadAnswer();
+  } else {
+    submitEditedAnswer();
   }
 }
 
