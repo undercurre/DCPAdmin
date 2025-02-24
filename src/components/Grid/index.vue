@@ -92,6 +92,8 @@ const gridCols = computed(() => {
 provide("cols", gridCols);
 
 // 寻找需要开始折叠的字段 index
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 const slots = useSlots().default!();
 
 const findIndex = () => {

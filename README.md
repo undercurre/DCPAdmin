@@ -6,7 +6,9 @@ nestjs微服务
 
 sso-garden 作为sso验证模块 port:3000
 pomms 用户信息管理模块 port:3003
-bill-collection 账单管理模块 port:3004
+bill-collection 账单管理模块 port:3006
+question_service 问答学习 3005
+file-storage-service 文件存储 3004
 
 # DCPAdmin
 
