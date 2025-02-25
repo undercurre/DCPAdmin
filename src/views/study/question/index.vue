@@ -4,7 +4,12 @@
       <h3>试题管理</h3>
       <el-button type="primary" @click="dialogVisible = true">题目录入</el-button>
     </div>
-    <el-table :data="tableData" style="width: 100%; height: 100%" :stripe="true">
+    <el-table
+      :data="tableData"
+      style="width: 100%; height: 100%"
+      :stripe="true"
+      :default-sort="{ prop: 'createdAt', order: 'descending' }"
+    >
       <el-table-column type="index" label="序号" width="80"></el-table-column>
       <el-table-column prop="content" label="题目" width="240" />
       <!-- <el-table-column prop="standard" label="答案" width="120" /> -->
