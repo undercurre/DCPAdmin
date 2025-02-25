@@ -13,7 +13,7 @@
       <el-table-column type="index" label="序号" width="80"></el-table-column>
       <el-table-column prop="content" label="题目" width="240" />
       <!-- <el-table-column prop="standard" label="答案" width="120" /> -->
-      <el-table-column prop="createdAt" label="CreateTime" />
+      <el-table-column prop="createdAt" label="CreateTime" :formatter="formatter" />
       <el-table-column :fixed="false" label="ToDo" min-width="120">
         <template #default="scope">
           <el-button link type="primary" size="small" @click="go2Answer(scope.row)">刷它</el-button>
@@ -71,13 +71,17 @@
 <script lang="ts" setup>
 import { onBeforeMount, reactive, ref } from "vue";
 
-import { ElMessage, ElMessageBox, ElTable } from "element-plus";
+import { dayjs, ElMessage, ElMessageBox, ElTable } from "element-plus";
 import { createAnswer, createQuestion, delQuestion, getQuestionList, updateQuestion } from "@/api/modules/study";
 import { Study } from "@/api/interface/study";
 
 let tableData = ref<Array<Study.Question>>([]);
 
 const dialogVisible = ref(false);
+
+const formatter = (row: Study.Answer) => {
+  return dayjs(row.createdAt).format("YYYY-MM-DD HH:mm:ss");
+};
 
 const handleClose = (done: () => void) => {
   ElMessageBox.confirm("Are you sure to close this dialog?")
