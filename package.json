@@ -20,7 +20,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "dev:pro": "vite --mode production",
+    "dev:pro": "vite --mode test",
     "serve": "vite",
     "build:dev": "vue-tsc && vite build --mode development",
     "build:test": "vue-tsc && vite build --mode test",
